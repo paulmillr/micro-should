@@ -1,6 +1,6 @@
 {
   "name": "micro-should",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Ultra-simple testing framework without dependencies. Supports async cases.",
   "main": "index.js",
   "files": [
