@@ -35,6 +35,6 @@ should.run = () => {
     }
   })();
 };
-
 exports.should = should;
 exports.it = should;
+exports.default = should;
