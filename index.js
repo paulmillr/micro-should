@@ -67,11 +67,15 @@ async function runParallel(tasks, cb) {
 }
 
 // let queue = [];
+let prefix = '';
 let only;
-const should = (message, test) => should.queue.push({ message, test });
+function addPrefix(message) {
+  return [prefix, message].filter(a => a).join(' ');
+}
+const should = (message, test) => should.queue.push({ message: addPrefix(message), test });
 should.queue = [];
-should.only = (message, test) => (only = { message, test });
-should.skip = (message, test) => should.queue.push({ message, test, skip: true });
+should.only = (message, test) => (only = { message: addPrefix(message), test });
+should.skip = (message, test) => should.queue.push({ message: addPrefix(message), test, skip: true });
 should.run = () => {
   const items = only ? [only] : should.queue;
   should.queue = [];
@@ -88,4 +92,10 @@ should.runParallel = () => {
   only = undefined;
   return runParallel(items, run);
 }
-module.exports = { should, it: should, default: should };
+function describe(_prefix, fn) {
+  const old = prefix;
+  prefix = [old, _prefix].filter(a => a).join(' ');
+  fn();
+  prefix = old;
+}
+module.exports = { should, it: should, _describe: describe, default: should };
