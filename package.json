@@ -1,6 +1,6 @@
 {
   "name": "micro-should",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Simplest zero-dependency testing framework, a drop-in replacement for Mocha",
   "main": "index.js",
   "files": [
