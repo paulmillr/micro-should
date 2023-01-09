@@ -1,10 +1,10 @@
-const red = "\x1b[31m";
-const green = "\x1b[32m";
-const reset = "\x1b[0m";
+const red = '\x1b[31m';
+const green = '\x1b[32m';
+const reset = '\x1b[0m';
 
 async function run({ message, test, skip, parallel }) {
   console.log();
-  let output = `should ${message.replace(/^should\s+/, "")}`;
+  let output = `should ${message.replace(/^should\s+/, '')}`;
   if (!parallel) console.log(`☆ ${output}:`);
   if (skip) {
     console.log(`(skip) ${output}`);
@@ -21,6 +21,7 @@ async function run({ message, test, skip, parallel }) {
 }
 
 async function runParallel(tasks, cb) {
+  // node.js / common.js-only
   const os = require('os');
   const cluster = require('cluster');
 
@@ -32,7 +33,7 @@ async function runParallel(tasks, cb) {
     let tasksDone = 0;
     for (let i = 0; i < tasks.length; i++) {
       if (cluster.worker.id - 1 !== i % WORKERS) continue;
-      await cb({parallel: true, ...tasks[i]});
+      await cb({ parallel: true, ...tasks[i] });
       tasksDone++;
     }
     process.send({ name: 'parallelTests', worker: clusterId, tasksDone });
@@ -46,7 +47,7 @@ async function runParallel(tasks, cb) {
       console.error(
         `${red}Worker W${worker.id} (pid: ${worker.process.pid}) died with code: ${code}${reset}`
       );
-      reject(new Error('Test worker died in agony.'));
+      reject(new Error('Test worker died in agony'));
     });
     let tasksDone = 0;
     let workersDone = 0;
@@ -66,16 +67,19 @@ async function runParallel(tasks, cb) {
   });
 }
 
-// let queue = [];
 let prefix = '';
 let only;
 function addPrefix(message) {
-  return [prefix, message].filter(a => a).join(' ');
+  return [prefix, message].filter((a) => a).join(' ');
 }
-const should = (message, test) => should.queue.push({ message: addPrefix(message), test });
+function enqueue(info) {
+  const { test, skip } = info;
+  should.queue.push({ message: addPrefix(info.message), test, skip });
+}
+const should = (message, test) => enqueue({ message, test });
 should.queue = [];
-should.only = (message, test) => (only = { message: addPrefix(message), test });
-should.skip = (message, test) => should.queue.push({ message: addPrefix(message), test, skip: true });
+should.only = (message, test) => (only = { message, test });
+should.skip = (message, test) => enqueue({ message, test, skip: true });
 should.run = () => {
   const items = only ? [only] : should.queue;
   should.queue = [];
@@ -91,11 +95,11 @@ should.runParallel = () => {
   should.queue = [];
   only = undefined;
   return runParallel(items, run);
-}
+};
 function describe(_prefix, fn) {
   const old = prefix;
-  prefix = [old, _prefix].filter(a => a).join(' ');
+  prefix = [old, _prefix].filter((a) => a).join(' ');
   fn();
   prefix = old;
 }
-module.exports = { should, it: should, _describe: describe, default: should };
+module.exports = { should, it: should, describe, default: should };
