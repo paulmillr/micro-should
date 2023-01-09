@@ -1,6 +1,8 @@
 # micro-should
 
-Ultra-simple testing framework without dependencies. Supports async cases. Works with any assertion library.
+Simplest zero-dependency testing framework, a drop-in replacement for Mocha.
+
+Supports async cases. Works with any assertion library.
 
 * `should(title, case)` (or `it(title, case)`) syntax
 * `should.only(title, case)` allows to limit tests to only one case

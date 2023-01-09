@@ -1,7 +1,7 @@
 {
   "name": "micro-should",
   "version": "0.2.1",
-  "description": "Ultra-simple testing framework without dependencies. Supports async cases.",
+  "description": "Simplest zero-dependency testing framework, a drop-in replacement for Mocha",
   "main": "index.js",
   "files": [
     "index.js",
@@ -16,5 +16,16 @@
     "url": "https://github.com/paulmillr/micro-should.git"
   },
   "author": "Paul Miller (https://paulmillr.com)",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "test",
+    "framework",
+    "testing",
+    "mocha",
+    "jest",
+    "it",
+    "should",
+    "jasmine",
+    "karma"
+  ]
 }
