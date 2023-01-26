@@ -1,4 +1,4 @@
-const { should } = require('.');
+const { should } = require('..');
 const assert = require('assert'); // built-in node.js assertion
 
 should('add two numbers together', () => {
@@ -18,7 +18,7 @@ should('produce correct promise result', async () => {
   assert.ok(data.includes('Minimal testing'));
 });
 
-const { describe } = require('.');
+const { describe } = require('..');
 
 describe('during any time of day', () => {
   describe('without hesitation', () => {

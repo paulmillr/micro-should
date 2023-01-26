@@ -8,7 +8,7 @@
     "index.d.ts"
   ],
   "scripts": {
-    "test": "node test.js"
+    "test": "node tests/example.test.js && node tests/basic.test.js && node tests/parallel.test.js"
   },
   "homepage": "https://github.com/paulmillr/micro-should",
   "repository": {
