@@ -13,7 +13,7 @@ Supports async cases. Works with any assertion library.
 
 > npm install micro-should
 
-![](https://raw.githubusercontent.com/paulmillr/micro-should/ab36ccc16635545d80df7cbacf5aedaeda6756ce/screenshot.png)
+![](https://raw.githubusercontent.com/paulmillr/micro-should/e60028e947f3158c46314ef105b51b2a2948c025/screenshot.png)
 
 ## Usage
 
