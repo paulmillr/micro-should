@@ -2,12 +2,14 @@
 export const options = {
   printTree: true,
   printMultiline: true,
-  stopAtError: true
+  stopAtError: true,
 };
 
-const red = '\x1b[31m';
-const green = '\x1b[32m';
-const reset = '\x1b[0m';
+const C = {
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  reset: '\x1b[0m',
+};
 // We can write 'pending' test name and then overwrite it with actual result by using ${up}.
 // However, if test prints something to STDOUT, last line would get removed.
 // We can wrap process.stdout also, but in that case there can be issues with non-node.js env.
@@ -40,32 +42,32 @@ async function run(info, printTree = false, multiLine = false, stopAtError = tru
     console.log(printTree ? `${info.prefix}${output} (skip)` : `☆ ${path}${output} (skip)`);
     return true;
   }
-  const printResult = (color, symbol) =>
+  const printResult = (color: keyof typeof C, symbol) =>
     console.log(
       printTree
-        ? `${info.childPrefix}${color}${output}: ${symbol}${reset}`
-        : `${color}${symbol} ${path}${output}${reset}`
+        ? `${info.childPrefix}${C[color]}${output}: ${symbol}${C.reset}`
+        : `${C[color]}${symbol} ${path}${output}${C.reset}`
     );
   try {
     await info.test();
-    printResult(green, '✓');
+    printResult('green', '✓');
     return true;
   } catch (error) {
-    printResult(red, '☓');
+    printResult('red', '☓');
     if (stopAtError) {
       throw error;
     } else {
-      console.error(`${red}ERROR:${reset}`, error);
+      console.error(`${C.red}ERROR:${C.reset}`, error);
       return false;
     }
   }
 }
 
-type Test = (() => {});
-type Info = { message?: string, test?: Test, skip?: boolean, children: Info[] }
-
+type Test = () => {};
+type Info = { message?: string; test?: Test; skip?: boolean; children?: Info[]; prefix?: string };
+type Item = { message: string; test: Test };
 class Stack {
-  stack: Info[]
+  stack: Info[];
   constructor() {
     this.setInitial();
   }
@@ -101,7 +103,7 @@ class Stack {
         childPrefix: `${prefix}${isLast ? LEAF_S : LEAF_E}`,
       };
     }
-    const out = [];
+    const out: Info[] = [];
     const walk = (elm: Info, depth = 0, isLast = false, prevPrefix = '', path: any[] = []) => {
       const { prefix, childPrefix } = formatPrefix(depth, prevPrefix, isLast);
       const newElm = { ...elm, prefix, childPrefix, path };
@@ -126,7 +128,7 @@ export function describe(message: string, fn: Test) {
   S.pop();
 }
 
-function enqueue(info: Info) {
+function enqueue(info: Item) {
   S.add(info);
   S.pop(); // remove from stack since there are no children
 }
@@ -139,9 +141,9 @@ function addSkippedTest(message: string, test: Test) {
 }
 function addOnlyTest(message: string, test: Test) {
   only = { message, test, only: true }; // shared module variable
-  enqueue(only)
+  enqueue(only);
 }
-function consumeQueue () {
+function consumeQueue() {
   const queue = () => S.flatten(S.bottom());
   let items = queue().slice();
   if (only) items = items.filter((i) => i.test === only.test);
