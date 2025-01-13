@@ -1,34 +1,8 @@
+/*! micro-should - MIT License (c) 2019 Paul Miller (paulmillr.com) */
 /**
  * Micro testing framework with familiar syntax for browsers, node and others.
  * Supports fast mode (parallel), quiet mode (dot reporter), tree structures, CLI self-run auto-detection.
- * @module
- * @example
-```js
-import { should } from 'micro-should';
-should('2 + 2 is 4', () => {
-  if (2 + 2 !== 4) throw new Error('invalid');
-});
-should.run();
-```
- * @example
-```js
-import { should, describe, beforeEach } from 'micro-should';
-describe('section', () => {
-  let adder = 0;
-  beforeEach(() => {
-    adder = 1;
-  });
-  should('2 + 2 is 5', () => {
-    if (adder + 2 + 2 !== 5) throw new Error('invalid');
-  });
-  should.skip('2 + 2 is 6', () => { });
-});
-describe.skip('section 2', () => { });
-// instead of should.run(), launch file only when called directly from CLI
-should.runWhen(import.meta.url);
-```
  */
-/*! micro-should - MIT License (c) 2019 Paul Miller (paulmillr.com) */
 
 export interface StackItem {
   message: string;
