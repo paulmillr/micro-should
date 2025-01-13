@@ -1,0 +1,42 @@
+{
+  "name": "micro-should",
+  "version": "0.4.0",
+  "description": "Micro testing framework with familiar syntax, multi-env ESM support & parallel execution",
+  "type": "module",
+  "module": "index.js",
+  "main": "index.js",
+  "files": [
+    "index.ts",
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "npx prettier index.ts test",
+    "format": "npx prettier --write index.ts test",
+    "test": "node test/basic.test.js; node test/example.test.js; node test/parallel.test.js"
+  },
+  "homepage": "https://github.com/paulmillr/micro-should",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulmillr/micro-should.git"
+  },
+  "author": "Paul Miller (https://paulmillr.com)",
+  "license": "MIT",
+  "keywords": [
+    "test",
+    "framework",
+    "testing",
+    "mocha",
+    "jest",
+    "it",
+    "should",
+    "jasmine",
+    "karma"
+  ],
+  "devDependencies": {
+    "@paulmillr/jsbt": "^0.2.1",
+    "prettier": "3.0",
+    "typescript": "5.5"
+  }
+}
