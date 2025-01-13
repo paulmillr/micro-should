@@ -1,6 +1,6 @@
 {
   "name": "@paulmillr/micro-should",
-  "version": "0.5.0-pre",
+  "version": "0.5.0",
   "exports": "./index.ts",
   "publish": {
     "include": [
