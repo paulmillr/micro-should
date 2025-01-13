@@ -8,6 +8,8 @@ Used in [noble cryptography](https://paulmillr.com/noble) and [many other packag
 
 > npm install micro-should
 
+> jsr add jsr:@paulmillr/micro-should
+
 Basic methods:
 
 * `should(title, case)` or `it(title, case)` syntax to register a test function
