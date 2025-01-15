@@ -21,7 +21,8 @@ export interface Options {
   PRINT_TREE: boolean;
   PRINT_MULTILINE: boolean;
   STOP_AT_ERROR: boolean;
-  MSHOULD_QUIET: boolean;
+  QUIET: boolean;
+  FAST: number;
 }
 
 export interface DescribeFunction {
@@ -62,7 +63,6 @@ export interface TestFunction {
 }
 export type EmptyFn = () => Promise<void> | void;
 
-declare const process: any;
 declare const console: any;
 
 const stack: StackItem[] = [{ message: '', children: [] }];
@@ -70,14 +70,29 @@ const errorLog: string[] = [];
 let onlyStack: StackItem | undefined;
 let running = false;
 const isCli = 'process' in globalThis;
+// Dumb bundlers parse code and assume we have hard dependency on "process". We don't.
+// The trick (also import(mod) below) ensures parsers can't see it.
+// @ts-ignore
+const proc: any = isCli ? globalThis['process'] : undefined;
 const opts: Options = {
   PRINT_TREE: true,
   PRINT_MULTILINE: true,
   STOP_AT_ERROR: true,
-  MSHOULD_QUIET: isCli && process.env.MSHOULD_QUIET,
+  QUIET: isCli && ['1', 'true'].includes(proc.env.MSHOULD_QUIET),
+  FAST: parseFast(proc.env.MSHOULD_FAST),
 };
-function isQuiet() {
-  return opts.MSHOULD_QUIET;
+
+function parseFast(str: string | number): number {
+  if (!isCli) return 0;
+  const defaultVal = 1;
+  let val = defaultVal;
+  if (typeof str === 'string') val = str === 'true' ? 1 : Number.parseInt(str as string, 10);
+  if (!Number.isSafeInteger(val) || val < 1 || val > 256) return 0;
+  return val;
+}
+
+function imp(moduleName: string): any {
+  return import(moduleName);
 }
 
 // String formatting utils
@@ -109,21 +124,21 @@ function color(colorName: keyof typeof c, title: string | number) {
 }
 
 function log(...args: (string | undefined)[]) {
-  if (isQuiet()) return logQuiet(false);
+  if (opts.QUIET) return logQuiet(false);
   // @ts-ignore
   console.log(...args);
 }
 function logQuiet(fail = false) {
   if (fail) {
-    process.stderr.write(color('red', '!'));
+    proc.stderr.write(color('red', '!'));
   } else {
-    process.stdout.write('.');
+    proc.stdout.write('.');
   }
 }
 function addToErrorLog(title = '', error: any): void {
   errorLog.push(`${title} ${error?.stack ? error.stack : error}`);
   // @ts-ignore
-  if (!isQuiet()) console.error(error); // loud = show error now. quiet = show in the end
+  if (!opts.QUIET) console.error(error); // loud = show error now. quiet = show in the end
 }
 
 function formatPrefix(depth: number, prefix: string, isLast: boolean) {
@@ -162,14 +177,13 @@ async function runTest(
   afterEachFns.reverse();
   if (onlyLogsToPrint.length) onlyLogsToPrint.forEach((l) => log(l));
 
-  const path = `${messages.join('/')}/`;
-  const full = path + title;
+  const path = messages.slice().concat(title).join('/');
 
   // Skip is always single-line
   if (multiLine && !info.skip) {
-    log(printTree ? `${info.prefix}${title}: ☆` : `☆ ${full}:`);
+    log(printTree ? `${info.prefix}${title}: ☆` : `☆ ${path}:`);
   } else if (info.skip) {
-    log(printTree ? `${info.prefix}${title} (skip)` : `☆ ${full} (skip)`);
+    log(printTree ? `${info.prefix}${title} (skip)` : `☆ ${path} (skip)`);
     return true;
   }
 
@@ -182,7 +196,7 @@ async function runTest(
     const symbol = fail ? '☓' : '✓';
     const clr = fail ? 'red' : 'green';
     const title_ = suffix ? [title, suffix].join('/') : title;
-    const full_ = suffix ? [full, suffix].join('/') : full;
+    const full_ = suffix ? [path, suffix].join('/') : path;
     log(
       printTree
         ? `${info.childPrefix}` + color(clr, `${title_}: ${symbol}`)
@@ -192,12 +206,12 @@ async function runTest(
 
   // Emit
   function logErrorStack(suffix: string) {
-    if (isQuiet()) {
+    if (opts.QUIET) {
       // when quiet, either stop & log trace; or log !
       if (stopAtError) {
         // stop, log whole path and trace
         console.error();
-        console.error(color('red', `☓ ${full}/${suffix}`));
+        console.error(color('red', `☓ ${path}/${suffix}`));
       } else {
         // log !, continue
         logQuiet(true);
@@ -216,7 +230,7 @@ async function runTest(
       logErrorStack('beforeEach');
       // @ts-ignore
       if (stopAtError) throw cause;
-      else addToErrorLog(`${full}/beforeEach`, cause);
+      else addToErrorLog(`${path}/beforeEach`, cause);
 
       return false;
     }
@@ -230,7 +244,7 @@ async function runTest(
     logErrorStack('');
     // @ts-ignore
     if (stopAtError) throw cause;
-    else addToErrorLog(`${full}`, cause);
+    else addToErrorLog(`${path}`, cause);
     return false;
   }
 
@@ -242,7 +256,7 @@ async function runTest(
       logErrorStack('afterEach');
       // @ts-ignore
       if (stopAtError) throw cause;
-      else addToErrorLog(`${full}/afterEach`, cause);
+      else addToErrorLog(`${path}/afterEach`, cause);
       return false;
     }
   }
@@ -322,7 +336,9 @@ function cloneAndReset() {
 
 // 123 tests (+quiet +fast-x8) started...
 function begin(total: number, workers?: number | undefined) {
-  const features = [isQuiet() ? '+quiet' : '', workers ? `+fast-x${workers}` : ''].filter((a) => a);
+  const features = [opts.QUIET ? '+quiet' : '', workers ? `+fast-x${workers}` : ''].filter(
+    (a) => a
+  );
   const modes = features.length ? `(${features.join(' ')}) ` : '';
   // No need to log stats when tests fit on one screen
   if (total > 32) console.log(`${color('green', total.toString())} tests ${modes}started...`);
@@ -330,12 +346,12 @@ function begin(total: number, workers?: number | undefined) {
 
 function finalize(total: number, startTime: number) {
   console.log();
-  if (isQuiet()) console.log();
+  if (opts.QUIET) console.log();
   const totalFailed = errorLog.length;
   if (totalFailed) {
     console.error();
     console.error(`${color('red', totalFailed)} tests failed`);
-    if (isQuiet()) {
+    if (opts.QUIET) {
       errorLog.forEach((err) => console.error(err));
     }
   } else {
@@ -345,7 +361,7 @@ function finalize(total: number, startTime: number) {
 
 async function runTests(forceSequential = false) {
   if (running) throw new Error('should.run() has already been called, wait for end');
-  if (!forceSequential && isCli && !!process?.env?.MSHOULD_FAST) return runTestsInParallel();
+  if (!forceSequential && opts.FAST) return runTestsInParallel();
   running = true;
   const tasks = cloneAndReset();
   const total = tasks.filter((i) => !!i.test).length;
@@ -364,36 +380,35 @@ async function runTests(forceSequential = false) {
 async function runTestsWhen(importMetaUrl: string) {
   if (!isCli) throw new Error('cannot be used outside of CLI');
   // @ts-ignore
-  const url = await import('node:url');
-  return importMetaUrl === url.pathToFileURL(process.argv[1]).href ? runTests() : undefined;
+  const { pathToFileURL } = await imp('node:url');
+  return importMetaUrl === pathToFileURL(proc.argv[1]).href ? runTests() : undefined;
 }
 
 // Doesn't support tree and multiline
 // TODO: support beforeEach, afterEach
 async function runTestsInParallel(): Promise<number> {
   if (!isCli) throw new Error('must run in cli');
-  if ('deno' in process.versions) return runTests(true);
+  if ('deno' in proc.versions) return runTests(true);
   const tasks = cloneAndReset().filter((i) => !!i.test); // Filter describe elements
   const total = tasks.length;
   const startTime = Date.now();
   const runTestPar = (info: StackItem) => runTest(info, false, false, opts.STOP_AT_ERROR);
 
   let cluster: any, err: any;
-  let totalW = Number.parseInt(process.env.MSHOULD_FAST, 10);
-  if (totalW === 1) totalW = 0;
+  let totalW = opts.FAST;
   try {
     // @ts-ignore
-    cluster = (await import('node:cluster')).default;
+    cluster = (await imp('node:cluster')).default;
     // @ts-ignore
-    if (!totalW) totalW = (await import('node:os')).cpus().length;
+    if (totalW === 1) totalW = (await imp('node:os')).cpus().length;
   } catch (error) {
     err = error;
   }
-  if (!cluster || !totalW!) throw new Error('parallel tests are not supported: ' + err);
+  if (!cluster || !parseFast(totalW)) throw new Error('parallel tests are not supported: ' + err);
 
   // the code is ran in workers
   if (!cluster.isPrimary) {
-    process.on('error', (err: any) => console.log('internal error:', 'child crashed?', err));
+    proc.on('error', (err: any) => console.log('internal error:', 'child crashed?', err));
     let tasksDone = 0;
     const id = cluster.worker.id;
     const strId = 'W' + id;
@@ -402,11 +417,11 @@ async function runTestsInParallel(): Promise<number> {
       await runTestPar(tasks[i]);
       tasksDone++;
     }
-    process.send({ name: 'parallelTests', worker: strId, tasksDone, errorLog });
-    process.exit();
+    proc.send({ name: 'parallelTests', worker: strId, tasksDone, errorLog });
+    proc.exit();
   }
 
-  // the code is ran in primary process
+  // the code is ran in primary proc
   return await new Promise((resolve, reject) => {
     begin(total, totalW);
     console.log();

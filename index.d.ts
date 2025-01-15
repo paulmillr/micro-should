@@ -19,7 +19,8 @@ export interface Options {
     PRINT_TREE: boolean;
     PRINT_MULTILINE: boolean;
     STOP_AT_ERROR: boolean;
-    MSHOULD_QUIET: boolean;
+    QUIET: boolean;
+    FAST: number;
 }
 export interface DescribeFunction {
     (message: string, testFunctions: () => Promise<any> | any): void;
