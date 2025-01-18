@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { should, describe, beforeEach, afterEach } from '../index.js';
+import { afterEach, beforeEach, describe, should } from '../index.js';
 
 describe('init', () => {
   let counterA_b = 0;
@@ -93,5 +93,5 @@ describe('during any time of day', () => {
   });
 });
 
-// Execute this at the end of a file.
+should.opts.FAST = 0;
 should.run();
