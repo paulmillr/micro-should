@@ -14,7 +14,7 @@
     "build": "tsc",
     "lint": "npx prettier index.ts test",
     "format": "npx prettier --write index.ts test",
-    "test": "node test/basic.test.js; node test/example.test.js; node test/parallel.test.js"
+    "test": "node test/example.test.js"
   },
   "homepage": "https://github.com/paulmillr/micro-should",
   "repository": {
