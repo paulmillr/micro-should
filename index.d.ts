@@ -71,5 +71,5 @@ declare function afterEach(fn: EmptyFn): void;
  * @param test function, may be async
  */
 declare const it: TestFunction;
-export { it, describe, beforeEach, afterEach, it as should };
+export { afterEach, beforeEach, describe, it, it as should };
 export default it;

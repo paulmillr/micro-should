@@ -22,10 +22,7 @@ const opts = {
 function parseFast(str) {
     if (!isCli)
         return 0;
-    const defaultVal = 1;
-    let val = defaultVal;
-    if (typeof str === 'string')
-        val = str === 'true' ? 1 : Number.parseInt(str, 10);
+    let val = str === 'true' ? 1 : Number.parseInt(str, 10);
     if (!Number.isSafeInteger(val) || val < 1 || val > 256)
         return 0;
     return val;
@@ -401,5 +398,5 @@ it.run = runTests;
 it.runWhen = runTestsWhen;
 it.runParallel = runTestsInParallel;
 it.opts = opts;
-export { it, describe, beforeEach, afterEach, it as should };
+export { afterEach, beforeEach, describe, it, it as should };
 export default it;

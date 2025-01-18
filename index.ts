@@ -85,9 +85,7 @@ const opts: Options = {
 
 function parseFast(str: string | number): number {
   if (!isCli) return 0;
-  const defaultVal = 1;
-  let val = defaultVal;
-  if (typeof str === 'string') val = str === 'true' ? 1 : Number.parseInt(str as string, 10);
+  let val = str === 'true' ? 1 : Number.parseInt(str as string, 10);
   if (!Number.isSafeInteger(val) || val < 1 || val > 256) return 0;
   return val;
 }
@@ -194,9 +192,8 @@ async function runTest(
     const title_ = suffix ? [title, suffix].join('/') : title;
     const full_ = suffix ? [path, suffix].join('/') : path;
     return printTree
-        ? `${info.childPrefix}` + color(clr, `${title_}: ${symbol}`)
-        : color(clr, `${symbol} ${full_}`)
-    ;
+      ? `${info.childPrefix}` + color(clr, `${title_}: ${symbol}`)
+      : color(clr, `${symbol} ${full_}`);
   }
 
   // Emit
@@ -345,12 +342,14 @@ function finalize(total: number, startTime: number) {
   if (opts.QUIET) console.log();
   const totalFailed = errorLog.length;
   const sec = Math.round((Date.now() - startTime) / 1000);
-  const tdiff = sec < 2 ? '' : sec < 60 ? `in ${sec} sec` : `in ${Math.floor(sec / 60)} min ${sec % 60} sec`;
+  const tdiff =
+    sec < 2 ? '' : sec < 60 ? `in ${sec} sec` : `in ${Math.floor(sec / 60)} min ${sec % 60} sec`;
   if (totalFailed) {
     if (opts.QUIET) {
       errorLog.forEach((err) => console.error(err));
     }
-    if (errorLog.length > 0) throw new Error(`${errorLog.length} of ${total} tests failed ${tdiff}`);
+    if (errorLog.length > 0)
+      throw new Error(`${errorLog.length} of ${total} tests failed ${tdiff}`);
   } else {
     console.log(`${color('green', total)} tests passed ${tdiff}`);
   }
@@ -469,5 +468,5 @@ it.runWhen = runTestsWhen;
 it.runParallel = runTestsInParallel;
 it.opts = opts;
 
-export { it, describe, beforeEach, afterEach, it as should };
+export { afterEach, beforeEach, describe, it, it as should };
 export default it;
