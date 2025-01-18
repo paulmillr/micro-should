@@ -3,6 +3,7 @@
  * Micro testing framework with familiar syntax for browsers, node and others.
  * Supports fast mode (parallel), quiet mode (dot reporter), tree structures, CLI self-run auto-detection.
  */
+/** A single test. */
 export interface StackItem {
     message: string;
     test?: () => Promise<any> | any;
@@ -18,7 +19,7 @@ export interface StackItem {
 export interface Options {
     PRINT_TREE: boolean;
     PRINT_MULTILINE: boolean;
-    STOP_AT_ERROR: boolean;
+    STOP_ON_ERROR: boolean;
     QUIET: boolean;
     FAST: number;
 }

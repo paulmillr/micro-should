@@ -6,7 +6,7 @@
 const stack = [{ message: '', children: [] }];
 const errorLog = [];
 let onlyStack;
-let running = false;
+let isRunning = false;
 const isCli = 'process' in globalThis;
 // Dumb bundlers parse code and assume we have hard dependency on "process". We don't.
 // The trick (also import(mod) below) ensures parsers can't see it.
@@ -15,7 +15,7 @@ const proc = isCli ? globalThis['process'] : undefined;
 const opts = {
     PRINT_TREE: true,
     PRINT_MULTILINE: true,
-    STOP_AT_ERROR: true,
+    STOP_ON_ERROR: true,
     QUIET: isCli && ['1', 'true'].includes(proc.env.MSHOULD_QUIET),
     FAST: parseFast(proc.env.MSHOULD_FAST),
 };
@@ -87,10 +87,6 @@ function formatPrefix(depth, prefix, isLast) {
         childPrefix: `${prefix}${isLast ? LEAF_S : LEAF_E}`,
     };
 }
-function tdiff(start) {
-    const sec = Math.round((Date.now() - start) / 1000);
-    return sec < 60 ? `${sec} sec` : `${Math.floor(sec / 60)} min ${sec % 60} sec`;
-}
 async function runTest(info, printTree = false, multiLine = false, stopAtError = true) {
     if (!printTree && multiLine)
         log();
@@ -98,24 +94,24 @@ async function runTest(info, printTree = false, multiLine = false, stopAtError =
     if (typeof info.test !== 'function')
         throw new Error('internal test error: invalid info.test');
     let messages = [];
-    let onlyLogsToPrint = [];
+    let onlyStackToLog = [];
     let beforeEachFns = [];
     let afterEachFns = []; // will be reversed
     for (const parent of info.path) {
         messages.push(parent.message);
         if (printTree && info.only)
-            onlyLogsToPrint.push(`${parent.prefix}${parent.message}`);
+            onlyStackToLog.push(`${parent.prefix}${parent.message}`);
         if (parent.beforeEach)
             beforeEachFns.push(parent.beforeEach);
         if (parent.afterEach)
             afterEachFns.push(parent.afterEach);
     }
     afterEachFns.reverse();
-    if (onlyLogsToPrint.length)
-        onlyLogsToPrint.forEach((l) => log(l));
+    if (onlyStackToLog.length)
+        onlyStackToLog.forEach((l) => log(l));
     const path = messages.slice().concat(title).join('/');
     // Skip is always single-line
-    if (multiLine && !info.skip) {
+    if (multiLine && !info.skip && !opts.QUIET) {
         log(printTree ? `${info.prefix}${title}: ☆` : `☆ ${path}:`);
     }
     else if (info.skip) {
@@ -127,14 +123,14 @@ async function runTest(info, printTree = false, multiLine = false, stopAtError =
     // quiet = true | false
     // printTree = true | false (true when fast mode)
     // stopAtError = true | false
-    function logTaskDone(fail = false, suffix = '') {
+    function formatTaskDone(fail = false, suffix = '') {
         const symbol = fail ? '☓' : '✓';
         const clr = fail ? 'red' : 'green';
         const title_ = suffix ? [title, suffix].join('/') : title;
         const full_ = suffix ? [path, suffix].join('/') : path;
-        log(printTree
+        return printTree
             ? `${info.childPrefix}` + color(clr, `${title_}: ${symbol}`)
-            : color(clr, `${symbol} ${full_}`));
+            : color(clr, `${symbol} ${full_}`);
     }
     // Emit
     function logErrorStack(suffix) {
@@ -143,7 +139,7 @@ async function runTest(info, printTree = false, multiLine = false, stopAtError =
             if (stopAtError) {
                 // stop, log whole path and trace
                 console.error();
-                console.error(color('red', `☓ ${path}/${suffix}`));
+                console.error(formatTaskDone(true, suffix));
             }
             else {
                 // log !, continue
@@ -152,7 +148,7 @@ async function runTest(info, printTree = false, multiLine = false, stopAtError =
         }
         else {
             // when loud, log (maybe formatted) tree structure
-            logTaskDone(true, suffix);
+            console.error(formatTaskDone(true, suffix));
         }
     }
     // Run beforeEach hooks from parent contexts
@@ -199,7 +195,7 @@ async function runTest(info, printTree = false, multiLine = false, stopAtError =
             return false;
         }
     }
-    logTaskDone();
+    log(formatTaskDone());
     return true;
 }
 function stackTop() {
@@ -268,27 +264,31 @@ function begin(total, workers) {
         console.log(`${color('green', total.toString())} tests ${modes}started...`);
 }
 function finalize(total, startTime) {
+    isRunning = false;
     console.log();
     if (opts.QUIET)
         console.log();
     const totalFailed = errorLog.length;
+    const sec = Math.round((Date.now() - startTime) / 1000);
+    const tdiff = sec < 2 ? '' : sec < 60 ? `in ${sec} sec` : `in ${Math.floor(sec / 60)} min ${sec % 60} sec`;
     if (totalFailed) {
-        console.error();
-        console.error(`${color('red', totalFailed)} tests failed`);
         if (opts.QUIET) {
             errorLog.forEach((err) => console.error(err));
         }
+        if (errorLog.length > 0)
+            throw new Error(`${errorLog.length} of ${total} tests failed ${tdiff}`);
     }
     else {
-        console.log(`${color('green', total)} tests passed in ${tdiff(startTime)}`);
+        console.log(`${color('green', total)} tests passed ${tdiff}`);
     }
+    return total;
 }
 async function runTests(forceSequential = false) {
-    if (running)
+    if (isRunning)
         throw new Error('should.run() has already been called, wait for end');
     if (!forceSequential && opts.FAST)
         return runTestsInParallel();
-    running = true;
+    isRunning = true;
     const tasks = cloneAndReset();
     const total = tasks.filter((i) => !!i.test).length;
     begin(total);
@@ -298,11 +298,9 @@ async function runTests(forceSequential = false) {
             log(`${test.prefix}${test.message}`);
         if (!test.test)
             continue;
-        await runTest(test, opts.PRINT_TREE, opts.PRINT_MULTILINE, opts.STOP_AT_ERROR);
+        await runTest(test, opts.PRINT_TREE, opts.PRINT_MULTILINE, opts.STOP_ON_ERROR);
     }
-    finalize(total, startTime);
-    running = false;
-    return total;
+    return finalize(total, startTime);
 }
 async function runTestsWhen(importMetaUrl) {
     if (!isCli)
@@ -321,7 +319,7 @@ async function runTestsInParallel() {
     const tasks = cloneAndReset().filter((i) => !!i.test); // Filter describe elements
     const total = tasks.length;
     const startTime = Date.now();
-    const runTestPar = (info) => runTest(info, false, false, opts.STOP_AT_ERROR);
+    const runTestPar = (info) => runTest(info, false, false, opts.STOP_ON_ERROR);
     let cluster, err;
     let totalW = opts.FAST;
     try {
@@ -377,15 +375,14 @@ async function runTestsInParallel() {
                 workersDone++;
                 tasksDone += msg.tasksDone;
                 msg.errorLog.forEach((item) => errorLog.push(item));
-                if (workersDone === totalW) {
-                    if (tasksDone === total) {
-                        finalize(total, startTime);
-                        resolve(tasksDone);
-                    }
-                    else {
-                        reject(new Error('internal error: not all tasks have been completed'));
-                    }
-                }
+                if (workersDone !== totalW)
+                    return;
+                if (tasksDone !== total)
+                    return reject(new Error('internal error: not all tasks have been completed'));
+                // @ts-ignore
+                globalThis.setTimeout(() => {
+                    resolve(finalize(total, startTime));
+                }, 0);
             });
         }
     });
