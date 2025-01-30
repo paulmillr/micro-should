@@ -2,39 +2,45 @@
 
 Micro testing framework with familiar syntax, multi-env ESM support & parallel execution.
 
-Used in [noble cryptography](https://paulmillr.com/noble) and [many other packages](https://github.com/paulmillr/micro-should/network/dependents).
+- Syntax like in Mocha / Jest / Vitest
+- Runs on node.js, deno, bun, cloudflare, browsers and others
+- No "global" magic: `it.run()` in the end simplifies logic and browser runs
+- Easily parallelized in node.js and bun
+- Beautiful tree reporter, optional "quiet" dot reporter
+
+Trusted by noble cryptography and [other packages](https://github.com/paulmillr/micro-should/network/dependents).
 
 ## Usage
 
-> npm install micro-should
+> `npm install micro-should`
 
-> jsr add jsr:@paulmillr/micro-should
+> `jsr add jsr:@paulmillr/micro-should`
 
 Basic methods:
 
-* `should(title, case)` or `it(title, case)` syntax to register a test function
-* `should.run()` or `it.run()` must always be executed in the end
+- `should(title, case)` or `it(title, case)` syntax to register a test function
+- `should.run()` or `it.run()` must always be executed in the end
 
 ENV variables:
 
-* `MSHOULD_FAST=1` enables parallel execution in node.js and Bun. Values >1 will set worker count.
-* `MSHOULD_QUIET=1` enables "quiet" dot reporter
+- `MSHOULD_FAST=1` enables parallel execution in node.js and Bun. Values >1 will set worker count.
+- `MSHOULD_QUIET=1` enables "quiet" dot reporter
 
 Additional methods:
 
-* `describe(prefix, cases)` for nested execution
-* `beforeEacn(fn)` to execute code before a function in `describe` block
-* `afterEach` to execute code after a function in `describe` block
-* `should.only(title, case)` allows to limit tests to only one case
-* `should.skip(title, case)` allows to skip functions instead of commenting them out
-* `describe.skip(prefix, cases)` to skip describe()-s
-* `should.runWhen(import.meta.url)` helper ensures CLI tests are not `run` twice if you're using many test files
-    * Executes .run() when passed argument is equal to CLI-passed file name.
-      Consider a project with 3 test files: a.test.js, b.test.js, all.js. all.js imports a.test.js and b.test.js.
-      User runs node a.test.js; then node all.js;
-    * Writing `it.run()` everywhere would fail, because it would try to run same tests twice.
-    * However, `it.runWhen(import.meta.url)` would succeed, because it detects whether
-      current file is launched from CLI and not imported.
+- `describe(prefix, cases)` for nested execution
+- `beforeEacn(fn)` to execute code before a function in `describe` block
+- `afterEach` to execute code after a function in `describe` block
+- `should.only(title, case)` allows to limit tests to only one case
+- `should.skip(title, case)` allows to skip functions instead of commenting them out
+- `describe.skip(prefix, cases)` to skip describe()-s
+- `should.runWhen(import.meta.url)` helper ensures CLI tests are not `run` twice if you're using many test files
+  - Executes .run() when passed argument is equal to CLI-passed file name.
+    Consider a project with 3 test files: a.test.js, b.test.js, all.js. all.js imports a.test.js and b.test.js.
+    User runs node a.test.js; then node all.js;
+  - Writing `it.run()` everywhere would fail, because it would try to run same tests twice.
+  - However, `it.runWhen(import.meta.url)` would succeed, because it detects whether
+    current file is launched from CLI and not imported.
 
 ![](https://raw.githubusercontent.com/paulmillr/micro-should/e60028e947f3158c46314ef105b51b2a2948c025/screenshot.png)
 
@@ -76,7 +82,7 @@ describe('during any time of day', () => {
       assert.equal(2 * 2, 4);
     });
 
-    should.skip("disable one test by using skip", () => {
+    should.skip('disable one test by using skip', () => {
       assert.ok(false); // would not execute
     });
 
@@ -110,8 +116,8 @@ should.runWhen(import.meta.url);
 
 Options which can be set via command line, as environment variables:
 
-* `MSHOULD_FAST=1` enables parallel execution in node.js and Bun. Values >1 will set worker count.
-* `MSHOULD_QUIET=1` enables "quiet" dot reporter
+- `MSHOULD_FAST=1` enables parallel execution in node.js and Bun. Values >1 will set worker count.
+- `MSHOULD_QUIET=1` enables "quiet" dot reporter
 
 Options which can be set via code:
 
