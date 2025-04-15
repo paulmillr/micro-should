@@ -266,8 +266,8 @@ function finalize(total, startTime) {
     if (opts.QUIET)
         console.log();
     const totalFailed = errorLog.length;
-    const sec = Math.round((Date.now() - startTime) / 1000);
-    const tdiff = sec < 2 ? '' : sec < 60 ? `in ${sec} sec` : `in ${Math.floor(sec / 60)} min ${sec % 60} sec`;
+    const sec = Math.ceil((Date.now() - startTime) / 1000);
+    const tdiff = sec < 60 ? `in ${sec} sec` : `in ${Math.floor(sec / 60)} min ${sec % 60} sec`;
     if (totalFailed) {
         if (opts.QUIET) {
             errorLog.forEach((err) => console.error(err));
@@ -347,7 +347,7 @@ async function runTestsInParallel() {
         proc.exit();
     }
     // the code is ran in primary proc
-    return await new Promise((resolve, reject) => {
+    const pr = new Promise((resolve, reject) => {
         begin(total, totalW);
         console.log();
         const workers = [];
@@ -357,8 +357,6 @@ async function runTestsInParallel() {
             if (!code)
                 return;
             const msg = `Worker W${worker.id} (pid: ${worker.process.pid}) crashed with code: ${code}`;
-            // @ts-ignore
-            console.error(color('red', msg));
             workers.forEach((w) => w.kill()); // Shutdown other workers
             reject(new Error(msg));
         });
@@ -382,6 +380,10 @@ async function runTestsInParallel() {
                 }, 0);
             });
         }
+    });
+    return pr.catch((err) => {
+        console.error();
+        console.error(color('red', 'Tests failed: ' + err.message));
     });
 }
 /**
