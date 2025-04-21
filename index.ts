@@ -131,10 +131,12 @@ function log(...args: (string | undefined)[]) {
 function logQuiet(fail = false) {
   if (fail) {
     const msg = color('red', '!');
-    if (isCli) proc!.stderr.write(msg); else console.error(msg);
+    if (isCli) proc!.stderr.write(msg);
+    else console.error(msg);
   } else {
     const msg = '.';
-    if (isCli) proc!.stdout.write(msg); else console.log(msg);
+    if (isCli) proc!.stdout.write(msg);
+    else console.log(msg);
   }
 }
 function addToErrorLog(title = '', error: any): void {
@@ -455,7 +457,7 @@ async function runTestsInParallel(): Promise<number> {
   return pr.catch((err: Error) => {
     console.error();
     console.error(color('red', 'Tests failed: ' + err.message));
-  })
+  });
 }
 
 /**
