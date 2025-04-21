@@ -1,6 +1,6 @@
 {
   "name": "micro-should",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Micro testing framework with familiar syntax, multi-env ESM support & parallel execution",
   "type": "module",
   "module": "index.js",
@@ -36,7 +36,7 @@
   ],
   "devDependencies": {
     "@paulmillr/jsbt": "0.3.3",
-    "prettier": "3.5.2",
-    "typescript": "5.8.2"
+    "prettier": "3.5.3",
+    "typescript": "5.8.3"
   }
 }
