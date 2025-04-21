@@ -4,7 +4,9 @@
     "baseUrl": ".",
     "outDir": ".",
     "sourceMap": false,
-    "declarationMap": false
+    "declarationMap": false,
+    "allowImportingTsExtensions": false,
+    "rewriteRelativeImportExtensions": false
   },
   "include": [
     "index.ts"
