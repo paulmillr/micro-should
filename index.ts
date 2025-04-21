@@ -74,13 +74,14 @@ const isCli = 'process' in globalThis;
 // Dumb bundlers parse code and assume we have hard dependency on "process". We don't.
 // The trick (also import(mod) below) ensures parsers can't see it.
 // @ts-ignore
-const proc: any = isCli ? globalThis['process'] : undefined;
+const pr = globalThis['process'];
+const proc: Record<string, any> | undefined = isCli ? pr : undefined;
 const opts: Options = {
   PRINT_TREE: true,
   PRINT_MULTILINE: true,
   STOP_ON_ERROR: true,
-  QUIET: isCli && ['1', 'true'].includes(proc.env.MSHOULD_QUIET),
-  FAST: parseFast(proc.env.MSHOULD_FAST),
+  QUIET: isCli && ['1', 'true'].includes(proc?.env?.MSHOULD_QUIET),
+  FAST: parseFast(proc?.env?.MSHOULD_FAST),
 };
 
 function parseFast(str: string | number): number {
@@ -129,9 +130,11 @@ function log(...args: (string | undefined)[]) {
 }
 function logQuiet(fail = false) {
   if (fail) {
-    proc.stderr.write(color('red', '!'));
+    const msg = color('red', '!');
+    if (isCli) proc!.stderr.write(msg); else console.error(msg);
   } else {
-    proc.stdout.write('.');
+    const msg = '.';
+    if (isCli) proc!.stdout.write(msg); else console.log(msg);
   }
 }
 function addToErrorLog(title = '', error: any): void {
@@ -372,17 +375,17 @@ async function runTests(forceSequential = false) {
 }
 
 async function runTestsWhen(importMetaUrl: string) {
-  if (!isCli) throw new Error('cannot be used outside of CLI');
+  if (!isCli) return; // Ignore in browser
   // @ts-ignore
   const { pathToFileURL } = await imp('node:url');
-  return importMetaUrl === pathToFileURL(proc.argv[1]).href ? runTests() : undefined;
+  return importMetaUrl === pathToFileURL(proc!.argv[1]).href ? runTests() : undefined;
 }
 
 // Doesn't support tree and multiline
 // TODO: support beforeEach, afterEach
 async function runTestsInParallel(): Promise<number> {
   if (!isCli) throw new Error('must run in cli');
-  if ('deno' in proc.versions) return runTests(true);
+  if ('deno' in proc!.versions) return runTests(true);
   const tasks = cloneAndReset().filter((i) => !!i.test); // Filter describe elements
   const total = tasks.length;
   const startTime = Date.now();
@@ -402,7 +405,7 @@ async function runTestsInParallel(): Promise<number> {
 
   // the code is ran in workers
   if (!cluster.isPrimary) {
-    proc.on('error', (err: any) => console.log('internal error:', 'child crashed?', err));
+    proc!.on('error', (err: any) => console.log('internal error:', 'child crashed?', err));
     let tasksDone = 0;
     const id = cluster.worker.id;
     const strId = 'W' + id;
@@ -411,8 +414,8 @@ async function runTestsInParallel(): Promise<number> {
       await runTestPar(tasks[i]);
       tasksDone++;
     }
-    proc.send({ name: 'parallelTests', worker: strId, tasksDone, errorLog });
-    proc.exit();
+    proc!.send({ name: 'parallelTests', worker: strId, tasksDone, errorLog });
+    proc!.exit();
   }
 
   // the code is ran in primary proc
