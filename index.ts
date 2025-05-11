@@ -337,8 +337,8 @@ function begin(total: number, workers?: number | undefined) {
     (a) => a
   );
   const modes = features.length ? `(${features.join(' ')}) ` : '';
-  // No need to log stats when tests fit on one screen
-  if (total > 32) console.log(`${color('green', total.toString())} tests ${modes}started...`);
+  const sfx = total > 1 ? 's' : '';
+  console.log(`${color('green', total.toString())} test${sfx} ${modes}started...`);
 }
 
 function finalize(total: number, startTime: number) {
