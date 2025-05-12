@@ -1,6 +1,6 @@
 {
   "name": "micro-should",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Micro testing framework with familiar syntax, multi-env ESM support & parallel execution",
   "type": "module",
   "module": "index.js",
