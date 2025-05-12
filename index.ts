@@ -457,6 +457,8 @@ async function runTestsInParallel(): Promise<number> {
   return pr.catch((err: Error) => {
     console.error();
     console.error(color('red', 'Tests failed: ' + err.message));
+    err.stack = '';
+    throw err;
   });
 }
 

@@ -265,9 +265,8 @@ function cloneAndReset() {
 function begin(total, workers) {
     const features = [opts.QUIET ? '+quiet' : '', workers ? `+fast-x${workers}` : ''].filter((a) => a);
     const modes = features.length ? `(${features.join(' ')}) ` : '';
-    // No need to log stats when tests fit on one screen
-    if (total > 32)
-        console.log(`${color('green', total.toString())} tests ${modes}started...`);
+    const sfx = total > 1 ? 's' : '';
+    console.log(`${color('green', total.toString())} test${sfx} ${modes}started...`);
 }
 function finalize(total, startTime) {
     isRunning = false;
@@ -393,6 +392,8 @@ async function runTestsInParallel() {
     return pr.catch((err) => {
         console.error();
         console.error(color('red', 'Tests failed: ' + err.message));
+        err.stack = '';
+        throw err;
     });
 }
 /**
