@@ -73,3 +73,4 @@ declare function afterEach(fn: EmptyFn): void;
 declare const it: TestFunction;
 export { afterEach, beforeEach, describe, it, it as should };
 export default it;
+//# sourceMappingURL=index.d.ts.map
