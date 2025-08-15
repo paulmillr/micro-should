@@ -15,7 +15,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "lint": "npx prettier index.ts test",
     "format": "npx prettier --write index.ts test",
     "test": "node test/example.test.js"
   },
@@ -32,7 +31,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/paulmillr/micro-should.git"
+    "url": "git+https://github.com/paulmillr/micro-should.git"
   },
   "type": "module",
   "main": "index.js",
