@@ -2,27 +2,23 @@
   "name": "micro-should",
   "version": "0.5.3",
   "description": "Micro testing framework with familiar syntax, multi-env ESM support & parallel execution",
-  "type": "module",
-  "module": "index.js",
-  "main": "index.js",
   "files": [
     "index.ts",
     "index.js",
     "index.d.ts"
   ],
+  "devDependencies": {
+    "@paulmillr/jsbt": "0.4.1",
+    "micro-bmark": "0.4.2",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "npx prettier index.ts test",
     "format": "npx prettier --write index.ts test",
     "test": "node test/example.test.js"
   },
-  "homepage": "https://github.com/paulmillr/micro-should",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/paulmillr/micro-should.git"
-  },
-  "author": "Paul Miller (https://paulmillr.com)",
-  "license": "MIT",
   "keywords": [
     "test",
     "framework",
@@ -34,10 +30,15 @@
     "jasmine",
     "karma"
   ],
-  "devDependencies": {
-    "@paulmillr/jsbt": "0.4.1",
-    "micro-bmark": "0.4.2",
-    "prettier": "3.6.2",
-    "typescript": "5.9.2"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulmillr/micro-should.git"
+  },
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "sideEffects": false,
+  "author": "Paul Miller (https://paulmillr.com)",
+  "license": "MIT"
 }
