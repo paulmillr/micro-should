@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc",
     "format": "npx prettier --write index.ts test",
-    "test": "node test/example.test.js"
+    "test": "node test/example.test.ts"
   },
   "keywords": [
     "test",
