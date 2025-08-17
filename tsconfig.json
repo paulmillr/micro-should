@@ -1,12 +1,9 @@
 {
-  "extends": "@paulmillr/jsbt/tsconfig.esm.json",
+  "extends": "@paulmillr/jsbt/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": ".",
     "sourceMap": false,
-    "declarationMap": false,
-    "allowImportingTsExtensions": false,
-    "rewriteRelativeImportExtensions": false
+    "declarationMap": false
   },
   "include": [
     "index.ts"

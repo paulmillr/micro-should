@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { afterEach, beforeEach, describe, should } from '../index.js';
+import { afterEach, beforeEach, describe, should } from '../index.ts';
 
 describe('init', () => {
   let counterA_b = 0;

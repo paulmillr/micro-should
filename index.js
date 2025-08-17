@@ -3,6 +3,14 @@
  * Micro testing framework with familiar syntax for browsers, node and others.
  * Supports fast mode (parallel), quiet mode (dot reporter), tree structures, CLI self-run auto-detection.
  */
+var __rewriteRelativeImportExtension = (this && this.__rewriteRelativeImportExtension) || function (path, preserveJsx) {
+    if (typeof path === "string" && /^\.\.?\//.test(path)) {
+        return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function (m, tsx, d, ext, cm) {
+            return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : (d + ext + "." + cm.toLowerCase() + "js");
+        });
+    }
+    return path;
+};
 const stack = [{ message: '', children: [] }];
 const errorLog = [];
 let onlyStack;
@@ -29,7 +37,7 @@ function parseFast(str) {
     return val;
 }
 function imp(moduleName) {
-    return import(moduleName);
+    return import(__rewriteRelativeImportExtension(moduleName));
 }
 // String formatting utils
 const _c = String.fromCharCode(27); // x1b, control code for terminal colors
