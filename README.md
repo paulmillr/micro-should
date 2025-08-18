@@ -1,5 +1,9 @@
 # micro-should
 
+> [!IMPORTANT]
+> The package got merged into [paulmillr/jsbt](https://github.com/paulmillr/jsbt)
+> and is now deprecated.
+
 Micro testing framework with familiar syntax, multi-env ESM support & parallel execution.
 
 - Syntax like in Mocha / Jest / Vitest
