@@ -1,6 +1,6 @@
 # micro-should
 
-> [!IMPORTANT]
+> [!WARNING]
 > The package got merged into [paulmillr/jsbt](https://github.com/paulmillr/jsbt)
 > and is now deprecated.
 
